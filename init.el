@@ -14,6 +14,7 @@
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 (setq package-enable-at-startup nil)
 
+
 ;; Bootstrap use-package
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -47,6 +48,7 @@
 (setq custom-file (make-temp-file "emacs-custom"))
 
 
+
 ;; centralize backup files to prevent dirspace clutter
 (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
   backup-by-copying t    ; Don't delink hardlinks
@@ -72,15 +74,21 @@
 
 ;; (setq inhibit-startup-message t)
 
+;; reload on external changes
+(global-auto-revert-mode t)
+
 ;; don't use tabs
 (setq-default indent-tabs-mode nil)
 
 (global-set-key (kbd "s-[") 'indent-rigidly-left-to-tab-stop)
 (global-set-key (kbd "s-]") 'indent-rigidly-right-to-tab-stop)
 
+;; breathing room from margin
+(setq-default left-margin-width 5 right-margin-width 8) ; Define new widths.
+(set-window-buffer nil (current-buffer)) ; Use them now.
 
 ;; wrap lines
-(global-visual-line-mode 1)
+(global-visual-line-mode -1)
 
 ;; turn off toolbar and scroll bar
 (tool-bar-mode -1)
@@ -121,56 +129,74 @@
                         (registers . 5))))
 
 
-; ;; flycheck
-; (use-package flycheck
-;   :config
-;   (add-hook 'after-init-hook 'global-flycheck-mode)
-;   (add-hook 'flycheck-mode-hook 'jc/use-eslint-from-node-modules)
-;   (add-to-list 'flycheck-checkers 'proselint)
-;   (setq-default flycheck-highlighting-mode 'lines)
-;   ;; Define fringe indicator / warning levels
-;   (define-fringe-bitmap 'flycheck-fringe-bitmap-ball
-;     (vector #b00000000
-;             #b00000000
-;             #b00000000
-;             #b00000000
-;             #b00000000
-;             #b00000000
-;             #b00000000
-;             #b00011100
-;             #b00111110
-;             #b00111110
-;             #b00111110
-;             #b00011100
-;             #b00000000
-;             #b00000000
-;             #b00000000
-;             #b00000000
-;             #b00000000))
-;   (flycheck-define-error-level 'error
-;     :severity 2
-;     :overlay-category 'flycheck-error-overlay
-;     :fringe-bitmap 'flycheck-fringe-bitmap-ball
-;     :fringe-face 'flycheck-fringe-error)
-;   (flycheck-define-error-level 'warning
-;     :severity 1
-;     :overlay-category 'flycheck-warning-overlay
-;     :fringe-bitmap 'flycheck-fringe-bitmap-ball
-;     :fringe-face 'flycheck-fringe-warning)
-;   (flycheck-define-error-level 'info
-;     :severity 0
-;     :overlay-category 'flycheck-info-overlay
-;     :fringe-bitmap 'flycheck-fringe-bitmap-ball
-;     :fringe-face 'flycheck-fringe-info))
+;; ;; flycheck
+(use-package flycheck
+  :config
+  (add-hook 'after-init-hook #'global-flycheck-mode)
+  ;; (add-hook 'flycheck-mode-hook 'jc/use-eslint-from-node-modules)
+  ;; (add-hook 'flycheck-mode-')
+
+  (add-to-list 'flycheck-checkers 'python-mypy)
+  (add-to-list 'flycheck-checkers 'python-pylint)
+  (add-to-list 'flycheck-checkers 'proselint)
+  (setq-default flycheck-highlighting-mode 'lines)
+  ;; Define fringe indicator / warning levels
+  (define-fringe-bitmap 'flycheck-fringe-bitmap-ball
+    (vector #b00000000
+            #b00000000
+            #b00000000
+            #b00000000
+            #b00000000
+            #b00000000
+            #b00000000
+            #b00011100
+            #b00111110
+            #b00111110
+            #b00111110
+            #b00011100
+            #b00000000
+            #b00000000
+            #b00000000
+            #b00000000
+            #b00000000))
+  (flycheck-define-error-level 'error
+    :severity 2
+    :overlay-category 'flycheck-error-overlay
+    :fringe-bitmap 'flycheck-fringe-bitmap-ball
+    :fringe-face 'flycheck-fringe-error)
+  (flycheck-define-error-level 'warning
+    :severity 1
+    :overlay-category 'flycheck-warning-overlay
+    :fringe-bitmap 'flycheck-fringe-bitmap-ball
+    :fringe-face 'flycheck-fringe-warning)
+  (flycheck-define-error-level 'info
+    :severity 0
+    :overlay-category 'flycheck-info-overlay
+    :fringe-bitmap 'flycheck-fringe-bitmap-ball
+    :fringe-face 'flycheck-fringe-info))
 
 
 
 ;; clean up obsolete buffers automatically
 (use-package midnight)
 
+;; smart M-x
+(use-package smex)
+
+;; unique buffer name
+(use-package uniquify
+  :config
+  (setq uniquify-buffer-name-style 'post-forward)
+  (setq uniquify-separator         ":"))
+
 
 ;; NAVIGATION
 ;; --------------------
+
+;; C-a to to move to first non-whitespace of line
+;; (use-package crux
+;;     :ensure t
+;;     :bind (("C-a" . crux-move-beginning-of-line)))
 
 ;;  avy allows us to effectively navigate to visible things
 (use-package avy
@@ -213,10 +239,17 @@
 (use-package gruvbox-theme
   :config
   (load-theme 'gruvbox-dark-hard))
-
 ;; (use-package monokai-theme
 ;;   :config
 ;;   (load-theme 'monkai))
+
+;; (use-package solarized-theme
+;;    :config
+;;    (load-theme 'solarized))
+
+;; (use-package dracula-theme
+;;    :config
+;;    (load-theme 'dracula))
 
 (when (eq system-type 'darwin)
   (set-face-attribute 'default nil :family "Source Code Pro for Powerline")
@@ -225,7 +258,7 @@
    ;; WARNING!  Depending on the default font,
    ;; if the size is not supported very well, the frame will be clipped
    ;; so that the beginning of the buffer may not be visible correctly.
-   (set-face-attribute 'default nil :height 130))
+   (set-face-attribute 'default nil :height 135))
 
 
 ;; (global-display-line-numbers-mode t)
@@ -269,8 +302,43 @@
 
 ;; fix reading environemnt variables from shell
 (use-package exec-path-from-shell
+  :init (setq exec-path-from-shell-check-startup-files nil)
   :config
   (exec-path-from-shell-initialize))
+
+
+;; pretty symbols for things like lambda
+(setq prettify-symbols-unprettify-at-point 'right-edge)
+  (global-prettify-symbols-mode 0)
+
+  ;; (add-hook
+  ;;  'python-mode-hook
+  ;;  (lambda ()
+  ;;    (mapc (lambda (pair) (push pair prettify-symbols-alist))
+  ;;          '(("def" . "𝒇")
+  ;;            ("class" . "𝑪")
+  ;;            ("and" . "∧")
+  ;;            ("or" . "∨")
+  ;;            ("not" . "￢")
+  ;;            ("in" . "∈")
+  ;;            ("not in" . "∉")
+  ;;            ("return" . "⟼")
+  ;;            ("yield" . "⟻")
+  ;;            ("for" . "∀")
+  ;;            ("!=" . "≠")
+  ;;            ("==" . "＝")
+  ;;            (">=" . "≥")
+  ;;            ("<=" . "≤")
+  ;;            ("[]" . "⃞")
+  ;;            ("=" . "≝")))))
+
+
+;; powerline
+(use-package powerline
+    :disabled
+    :config
+    (setq powerline-default-separator 'utf-8))
+
 
 
 ;; PROJECT MANAGEMENT
@@ -343,6 +411,7 @@
   (add-hook 'python-mode-hook 'anaconda-mode)
   (add-hook 'python-mode-hook 'anaconda-eldoc-mode))
 
+(setq flycheck-python-flake8-executable "/usr/local/bin/flake8")
 
 (use-package blacken)
 
@@ -353,9 +422,7 @@
   :hook (python-mode . pipenv-mode)
   :init
   (setq
-   pipenv-projectile-after-switch-function
-   #'pipenv-projectile-after-switch-extended))
-
+   pipenv-projectile-after-switch-function #'pipenv-projectile-after-switch-default))
 
 
 ;; ORG MODE
@@ -386,10 +453,10 @@
 
 
 ;; multiterm
-;; (add-to-list 'load-path "~/.emacs.d/plugins")
-;; (require 'multi-term)
-;; (setq multi-term-program "/bin/zsh")
-;; (global-set-key (kbd "C-x C-t") 'multi-term)
+(add-to-list 'load-path "~/.emacs.d/packages")
+(use-package multi-term
+  :config (setq multi-term-program "/bin/zsh")
+  :bind ("C-x C-t" . multi-term))
 
 
 
