@@ -82,6 +82,7 @@
 
 (global-set-key (kbd "s-[") 'indent-rigidly-left-to-tab-stop)
 (global-set-key (kbd "s-]") 'indent-rigidly-right-to-tab-stop)
+(global-set-key (kbd "M-o")  'mode-line-other-buffer)
 
 ;; breathing room from margin
 (setq-default left-margin-width 5 right-margin-width 8) ; Define new widths.
@@ -89,6 +90,7 @@
 
 ;; wrap lines
 (global-visual-line-mode -1)
+
 
 ;; turn off toolbar and scroll bar
 (tool-bar-mode -1)
@@ -133,6 +135,7 @@
 (use-package flycheck
   :config
   (add-hook 'after-init-hook #'global-flycheck-mode)
+  (setq flycheck-flake8-maximum-line-length 90)
   ;; (add-hook 'flycheck-mode-hook 'jc/use-eslint-from-node-modules)
   ;; (add-hook 'flycheck-mode-')
 
@@ -297,6 +300,10 @@
 ;; keep things indented
 (use-package aggressive-indent)
 
+(setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
+(setq indent-line-function 'insert-tab)
+
 ;; expand parenthesis
 (add-hook 'prog-mode-hook 'electric-pair-mode)
 
@@ -403,6 +410,12 @@
 ;; PYTHON
 ;; --------------------
 
+(add-hook 'python-mode-hook
+	    (lambda ()
+		    (setq-default indent-tabs-mode t)
+		    (setq-default tab-width 4)
+		    (setq-default py-indent-tabs-mode t)))
+
 (when (fboundp 'exec-path-from-shell-copy-env)
   (exec-path-from-shell-copy-env "PYTHONPATH"))
 
@@ -413,10 +426,14 @@
 
 (setq flycheck-python-flake8-executable "/usr/local/bin/flake8")
 
-(use-package blacken)
+(use-package blacken
+    :hook (python-mode . blacken-mode))
+
 
 (use-package py-autopep8
-:config (add-hook 'python-mode-hook 'py-autopep8-enable-on-save))
+  :config
+  ;; (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
+  (setq py-autopep8-options '("--max-line-length=100")))
 
 (use-package pipenv
   :hook (python-mode . pipenv-mode)
@@ -458,11 +475,23 @@
   :config (setq multi-term-program "/bin/zsh")
   :bind ("C-x C-t" . multi-term))
 
+;; highlight indents
+(add-to-list 'load-path "~/.emacs.d/packages/highlight-indent")
+(use-package highlight-indentation
+    :hook (python-mode . highlight-indentation-mode))
+
 
 
 ;; KEYBINDINGS
 
-(global-set-key (kbd "s-i") 'helm-imenu)
+(global-set-key (kbd "s-i") 'counsel-imenu)
+
+
+;; multiple-cursors
+(use-package multiple-cursors
+  :config
+  (global-unset-key (kbd "M-<down-mouse-1>"))
+  (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click))
 
 
 
