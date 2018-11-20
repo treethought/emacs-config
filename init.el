@@ -4,15 +4,15 @@
 ;; --------------------------------------
 
 
-
+(server-start)
 (require 'package)
 
-(package-initialize)
+;; (package-initialize)
 
 
 ;; package sources
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
-(setq package-enable-at-startup nil)
+;; (setq package-enable-at-startup nil)
 
 
 ;; Bootstrap use-package
@@ -85,7 +85,7 @@
 (global-set-key (kbd "M-o")  'mode-line-other-buffer)
 
 ;; breathing room from margin
-(setq-default left-margin-width 5 right-margin-width 8) ; Define new widths.
+(setq-default left-margin-width 15 right-margin-width 8) ; Define new widths.
 (set-window-buffer nil (current-buffer)) ; Use them now.
 
 ;; wrap lines
@@ -190,16 +190,24 @@
 (use-package uniquify
   :config
   (setq uniquify-buffer-name-style 'post-forward)
-  (setq uniquify-separator         ":"))
+  (setq uniquify-separator         ":")
+  (setq uniquify-after-kill-buffer-p t)    ; rename after killing uniquified
+  (setq uniquify-ignore-buffers-re "^\\*") ; don't muck with special buffers
+)
 
 
 ;; NAVIGATION
 ;; --------------------
 
 ;; C-a to to move to first non-whitespace of line
-;; (use-package crux
-;;     :ensure t
-;;     :bind (("C-a" . crux-move-beginning-of-line)))
+(use-package crux
+    :ensure t
+    :bind (
+		("C-a" . crux-move-beginning-of-line)
+		("C-k" .  crux-smart-kill-line))
+		("C-c u" . crux-view-url)
+		("C-c k" . crux-kill-other-buffers)
+		("s-o" . crux-recentf-find-file))
 
 ;;  avy allows us to effectively navigate to visible things
 (use-package avy
@@ -232,19 +240,43 @@
 
 
 ;; ido
-(ido-mode t)
+;; (ido-mode t)
 
+(use-package eyebrowse
+    :config (eyebrowse-mode t))
 
+(use-package smart-jump)
 
 
 ;; APPEARANCE
 ;;--------------------
-(use-package gruvbox-theme
-  :config
-  (load-theme 'gruvbox-dark-hard))
-;; (use-package monokai-theme
+;; (use-package gruvbox-theme
 ;;   :config
-;;   (load-theme 'monkai))
+;;   (load-theme 'gruvbox-dark-hard))
+(use-package monokai-theme
+  :init
+  :config
+  (load-theme 'monokai))
+
+  (setq ;; foreground and background
+      monokai-foreground     "#ABB2BF"
+      monokai-background     "#0A0007")
+      ;; highlights and comments
+      ;; monokai-comments       "#F8F8F0"
+      ;; monokai-emphasis       "#282C34"
+      ;; monokai-highlight      "#FFB269"
+      ;; monokai-highlight-alt  "#66D9EF"
+      ;; monokai-highlight-line "#1B1D1E"
+      ;; monokai-line-number    "#F8F8F0"
+      ;; ;; colours
+      ;; monokai-blue           "#61AFEF"
+      ;; monokai-cyan           "#56B6C2"
+      ;; monokai-green          "#98C379"
+      ;; monokai-gray           "#3E4451"
+      ;; monokai-violet         "#C678DD"
+      ;; monokai-red            "#E06C75"
+      ;; monokai-orange         "#D19A66"
+      ;; monokai-yellow         "#E5C07B")
 
 ;; (use-package solarized-theme
 ;;    :config
@@ -256,12 +288,16 @@
 
 (when (eq system-type 'darwin)
   (set-face-attribute 'default nil :family "Source Code Pro for Powerline")
+    (set-face-attribute 'default nil :family "Space Mono for Powerline")
+    ;; (set-face-attribute 'default nil :family "Meslo LG M DZ for Powerline")
+    ;;     (set-face-attribute 'default nil :family "Fira Mono for Powerline")
+    ;;     (set-face-attribute 'default nil :family "Inconsolata-dz for Powerline")
    ;; default font size (point * 10)
    ;;
    ;; WARNING!  Depending on the default font,
    ;; if the size is not supported very well, the frame will be clipped
    ;; so that the beginning of the buffer may not be visible correctly.
-   (set-face-attribute 'default nil :height 135))
+   (set-face-attribute 'default nil :height 125))
 
 
 ;; (global-display-line-numbers-mode t)
@@ -285,17 +321,16 @@
 ;; highlight parens
 (use-package rainbow-delimiters
   :config
-  (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+  (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+  :delight)
 
 ;; highlight colors
 (use-package rainbow-mode
   :config
   (setq rainbow-x-colors nil)
-  (add-hook 'prog-mode-hook 'rainbow-mode))
+  (add-hook 'prog-mode-hook 'rainbow-mode)
+  :delight)
 
-; (require 'volatile-highlights)
-; (volatile-highlights-mode t)
-; (diminish 'volatile-highlights-mode)
 
 ;; keep things indented
 (use-package aggressive-indent)
@@ -316,36 +351,22 @@
 
 ;; pretty symbols for things like lambda
 (setq prettify-symbols-unprettify-at-point 'right-edge)
-  (global-prettify-symbols-mode 0)
-
-  ;; (add-hook
-  ;;  'python-mode-hook
-  ;;  (lambda ()
-  ;;    (mapc (lambda (pair) (push pair prettify-symbols-alist))
-  ;;          '(("def" . "𝒇")
-  ;;            ("class" . "𝑪")
-  ;;            ("and" . "∧")
-  ;;            ("or" . "∨")
-  ;;            ("not" . "￢")
-  ;;            ("in" . "∈")
-  ;;            ("not in" . "∉")
-  ;;            ("return" . "⟼")
-  ;;            ("yield" . "⟻")
-  ;;            ("for" . "∀")
-  ;;            ("!=" . "≠")
-  ;;            ("==" . "＝")
-  ;;            (">=" . "≥")
-  ;;            ("<=" . "≤")
-  ;;            ("[]" . "⃞")
-  ;;            ("=" . "≝")))))
+(global-prettify-symbols-mode 0)
 
 
-;; powerline
 (use-package powerline
     :disabled
     :config
     (setq powerline-default-separator 'utf-8))
 
+
+;; (use-package smart-mode-line
+;;   :init (setq sml/theme 'powerline)
+;;     (sml/setup)
+;;    :config
+;;     (setq sml/shorten-directory t)
+;;     (setq sml/shorten-modes t)
+;;     (setq sml/use-projectile-p t))
 
 
 ;; PROJECT MANAGEMENT
@@ -355,22 +376,27 @@
 (use-package projectile
   :config
   (projectile-mode)
-  (setq projectile-completion-system 'ivy)
+  (setq projectile-completion-system 'helm)
   (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
-  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+  :delight '(:eval (concat " " (projectile-project-name)))) ;; remove mode name but keep project name
 
 (use-package magit
   :bind ("C-x g" . magit-status))
 
+(add-to-list 'load-path "~/.emacs.d/packages/magit-gitflow")
+(use-package magit-gitflow
+  :config (add-hook 'magit-mode-hook 'turn-on-magit-gitflow))
 
-(use-package git-gutter
-  :config
-  (global-git-gutter-mode 't)
-  :diminish git-gutter-mode
-  :bind (("M-n" . git-gutter:next-hunk)
-         ("M-p" . git-gutter:previous-hunk)
-         (""))
-  )
+
+  (use-package git-gutter
+	:config
+	(global-git-gutter-mode 't)
+	:diminish git-gutter-mode
+	:bind (("M-n" . git-gutter:next-hunk)
+           ("M-p" . git-gutter:previous-hunk)
+           (""))
+	)
 
 
 
@@ -419,6 +445,9 @@
 (when (fboundp 'exec-path-from-shell-copy-env)
   (exec-path-from-shell-copy-env "PYTHONPATH"))
 
+(use-package eldoc
+  :delight)
+
 (use-package anaconda-mode
   :config
   (add-hook 'python-mode-hook 'anaconda-mode)
@@ -426,30 +455,76 @@
 
 (setq flycheck-python-flake8-executable "/usr/local/bin/flake8")
 
+
 (use-package blacken
-    :hook (python-mode . blacken-mode))
+  :hook (python-mode . blacken-mode))
 
 
-(use-package py-autopep8
-  :config
-  ;; (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
-  (setq py-autopep8-options '("--max-line-length=100")))
+;; (use-package py-autopep8
+;;   :config
+;;   ;; (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
+;;   (setq py-autopep8-options '("--max-line-length=100")))
 
 (use-package pipenv
   :hook (python-mode . pipenv-mode)
-  :init
-  (setq
-   pipenv-projectile-after-switch-function #'pipenv-projectile-after-switch-default))
+  :config (setq pipenv-with-projectile, t)
+  (setq pipenv-projectile-after-switch-function, #'pipenv-projectile-after-switch-default))
 
 
 ;; ORG MODE
-(setq uniquify-after-kill-buffer-p t)    ; rename after killing uniquified
-(setq uniquify-ignore-buffers-re "^\\*") ; don't muck with special buffers
+;; --------------------
 
 
 
+(setq org-directory "~/org")
+(setq org-default-notes-file "~/org/notes.org")
 
 
+;; I use C-c c to start capture mode
+(global-set-key (kbd "C-c c") 'org-capture)
+(global-set-key  (kbd "C-c l") 'org-store-link)
+(global-set-key (kbd "C-c a") 'org-agenda)
+(global-set-key (kbd "C-c b") 'org-switch)
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages '((shell . t)
+							(python . t)))
+
+
+
+;; Remove empty LOGBOOK drawers on clock out
+(defun bh/remove-empty-drawer-on-clock-out ()
+  (interactive)
+  (save-excursion
+    (beginning-of-line 0)
+    (org-remove-empty-drawer-at "LOGBOOK" (point))))
+
+(add-hook 'org-clock-out-hook 'bh/remove-empty-drawer-on-clock-out 'append)
+
+
+
+;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
+(setq org-capture-templates
+      (quote (("t" "todo" entry (file "~/org/notes.org")
+               "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
+              ;; ("b" "bookmark" item (file+headline "~/org/notes.org" "Bookmarks")
+              ;;   "* BOOKMARK %:link%:description\n%?%^G\n%U\n")
+              ("b" "Bookmark" entry (file+headline "~/org/notes.org" "Bookmarks")
+	           "* %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n\n" :empty-lines 1)
+              ("r" "respond" entry (file "~/org/notes.org")
+               "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
+              ("n" "note" entry (file "~/org/notes.org")
+               "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
+              ("j" "Journal" entry (file+datetree "~/org/diary.org")
+               "* %?\n%U\n" :clock-in t :clock-resume t)
+              ("w" "org-protocol" entry (file "~/org/notes.org")
+               "* TODO Review %c\n%U\n" :immediate-finish t)
+              ("m" "Meeting" entry (file "~/org/notes.org")
+               "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
+              ("p" "Phone call" entry (file "~/org/notes.org")
+               "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
+              ("h" "Habit" entry (file "~/org/notes.org")
+               "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
 
 
 
@@ -462,7 +537,11 @@
 
 
 ;; ;; duck-duck-go
-;; (setq load-path (cons "~/.emacs.d/plugins/ddg" load-path))
+;; (setq load-path (cons "~/.emacs.d/plugins/duckduckgo" load-path))
+;; (use-package ddg)
+;; (use-package ddg-search)
+;; (use-package ddg-mode)
+
 ;; (require 'ddg)
 ;; (require 'ddg-search)
 ;; (require 'ddg-mode)
@@ -476,15 +555,15 @@
   :bind ("C-x C-t" . multi-term))
 
 ;; highlight indents
-(add-to-list 'load-path "~/.emacs.d/packages/highlight-indent")
-(use-package highlight-indentation
-    :hook (python-mode . highlight-indentation-mode))
+;; (add-to-list 'load-path "~/.emacs.d/packages/highlight-indent")
+;; (use-package highlight-indentation
+;;   :hook (python-mode . highlight-indentation-mode))
 
 
 
 ;; KEYBINDINGS
 
-(global-set-key (kbd "s-i") 'counsel-imenu)
+
 
 
 ;; multiple-cursors
@@ -493,6 +572,26 @@
   (global-unset-key (kbd "M-<down-mouse-1>"))
   (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click))
 
+;; nov.el for reading ebooks
+(add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
 
+
+(use-package helm
+  :bind (("M-x" . helm-M-x)
+         ("C-x C-f" . helm-find-files)
+         ([f10] . helm-buffers-list)
+         ([S-f10] . helm-recentf)))
+
+(global-set-key (kbd "M-x") #'helm-M-x)
+(global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
+(global-set-key (kbd "C-x C-f") #'helm-find-files)
+(global-set-key (kbd "C-x b") #'helm-mini)
+(global-set-key (kbd "s-i") #'helm-imenu)
+(global-set-key (kbd "M-s o") #'helm-occur)
+(helm-autoresize-mode 1)
+
+
+
+(helm-mode 1)
 
 ;; init.el ends here
