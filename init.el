@@ -33,12 +33,12 @@
 
 
 ;; quickly find this file
-(defun find-config ()
-  "Edit config.org"
-  (interactive)
-  (find-file "~/emacs.d/init.el"))
+;; (defun find-config ()
+;;   "Edit config.org"
+;;   (interactive)
+;;   (find-file "~/emacs.d/init.el"))
 
-;; (global-set-key (kbd "C-c I") 'find-config)
+(global-set-key (kbd "C-c I") 'find-config)
 
 
 
@@ -63,7 +63,9 @@
 (setq custom-safe-themes t)
 
 ;; save and restore desktop
-(desktop-save-mode 1)
+(use-package desktop
+	:config
+	(desktop-save-mode 1))
 
 ;; .zsh file is shell script too
 (add-to-list 'auto-mode-alist '("\\.zsh\\'" . shell-script-mode))
@@ -187,13 +189,12 @@
 (use-package smex)
 
 ;; unique buffer name
-(use-package uniquify
-  :config
-  (setq uniquify-buffer-name-style 'post-forward)
-  (setq uniquify-separator         ":")
-  (setq uniquify-after-kill-buffer-p t)    ; rename after killing uniquified
-  (setq uniquify-ignore-buffers-re "^\\*") ; don't muck with special buffers
-)
+
+(setq uniquify-buffer-name-style 'post-forward)
+(setq uniquify-separator         ":")
+(setq uniquify-after-kill-buffer-p t)    ; rename after killing uniquified
+(setq uniquify-ignore-buffers-re "^\\*") ; don't muck with special buffers
+
 
 
 ;; NAVIGATION
@@ -242,8 +243,8 @@
 ;; ido
 ;; (ido-mode t)
 
-(use-package eyebrowse
-    :config (eyebrowse-mode t))
+(use-package eyebrowse)
+(eyebrowse-mode t)
 
 (use-package smart-jump)
 
@@ -354,19 +355,22 @@
 (global-prettify-symbols-mode 0)
 
 
-(use-package powerline
-    :disabled
-    :config
-    (setq powerline-default-separator 'utf-8))
+;; (use-package powerline
+;;     :disabled
+;;     :config
+;;     (setq powerline-default-separator 'utf-8))
 
 
-;; (use-package smart-mode-line
-;;   :init (setq sml/theme 'powerline)
-;;     (sml/setup)
-;;    :config
-;;     (setq sml/shorten-directory t)
-;;     (setq sml/shorten-modes t)
-;;     (setq sml/use-projectile-p t))
+(use-package smart-mode-line
+  :init
+	(setq sml/theme 'dark)
+    ;; (setq sml/shorten-directory t)
+    ;; (setq sml/shorten-modes t)
+    (setq sml/use-projectile-p 't)
+	(setq sml/name-width 20)
+	(setq sml/mode-width 'full)
+	;; (setq sml/replacer-regexp-list '((".*" "")))
+	(sml/setup))
 
 
 ;; PROJECT MANAGEMENT
@@ -479,12 +483,21 @@
 (setq org-directory "~/org")
 (setq org-default-notes-file "~/org/notes.org")
 
+(setq org-agenda-files
+      '("~/org/notes.org" "~/org/refile.org"))
+
+(setq org-refile-targets
+      '((nil :maxlevel . 1)
+        (org-agenda-files :maxlevel . 2)))
+
 
 ;; I use C-c c to start capture mode
 (global-set-key (kbd "C-c c") 'org-capture)
 (global-set-key  (kbd "C-c l") 'org-store-link)
 (global-set-key (kbd "C-c a") 'org-agenda)
 (global-set-key (kbd "C-c b") 'org-switch)
+;; remap refile to not overlap with eybrowse
+(global-set-key (kbd "C-c r") 'org-refile)
 
 (org-babel-do-load-languages
  'org-babel-load-languages '((shell . t)
@@ -561,6 +574,133 @@
 
 
 
+
+;;----------------------------------------------------------
+;; ---- BEGIN Email client ----
+;;----------------------------------------------------------
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
+(require 'mu4e)
+
+;; default
+(setq mu4e-maildir "~/Maildir")
+(setq mu4e-drafts-folder "/[Gmail].Drafts")
+(setq mu4e-sent-folder   "/[Gmail].Sent Mail")
+(setq mu4e-trash-folder  "/[Gmail].Trash")
+(setq mu4e-refile-folder "/[Gmail].Archive")
+
+;; don't save message to Sent Messages, Gmail/IMAP takes care of this
+(setq mu4e-sent-messages-behavior 'delete)
+
+;; setup some handy shortcuts
+;; you can quickly switch to your Inbox -- press ``ji''
+;; then, when you want archive some messages, move them to
+;; the 'All Mail' folder by pressing ``ma''.
+(setq mu4e-maildir-shortcuts
+      '( ("/INBOX"               . ?i)
+         ("/[Gmail].Sent Mail"   . ?s)
+         ("/[Gmail].Trash"       . ?t)
+		 ("/[Gmail].Starred"     . ?p)
+         ("/[Gmail].All Mail"    . ?a)))
+
+;; allow for updating mail using 'U' in the main view:
+(setq mu4e-get-mail-command "offlineimap")
+
+;; show images
+(setq mu4e-view-show-images t)
+
+;; use imagemagick, if available
+(when (fboundp 'imagemagick-register-types)
+  (imagemagick-register-types))
+
+;; Sometimes html email is just not readable in a text based client, this lets me open the
+;; email in my browser. `aV` in view to activate
+(add-to-list 'mu4e-view-actions '("View in browser" . mu4e-action-view-in-browser) t)
+
+;; Possible options:
+;;   - html2text -utf8 -width 72
+;;   - textutil -stdin -format html -convert txt -stdout
+;;   - html2markdown | grep -v '&nbsp_place_holder;' (Requires html2text pypi)
+;;   - w3m -dump -cols 80 -T text/html
+;;   - view in browser (provided below)
+;; (setq mu4e-html2text-command "textutil -stdin -format html -convert txt -stdout")
+;; (setq mu4e-html2text-command "w3m -dump -T text/html")
+;; (setq mu4e-html2text-command "pandoc -f html -t org")
+(setq  mu4e-view-prefer-html t)
+(setq mu4e-html2text-command
+  "textutil -stdin -format html -convert txt -stdout")
+
+;; spell check
+(add-hook 'mu4e-compose-mode-hook
+        (defun my-do-compose-stuff ()
+           "My settings for message composition."
+           (set-fill-column 72)
+           (flyspell-mode)))
+
+
+;; This enabled the thread like viewing of email similar to gmail's UI.
+(setq mu4e-headers-include-related t)
+(setq mu4e-attachment-dir  "~/attachments")
+
+(setq mu4e-use-fancy-chars t)
+
+;; fetch mail every 10 mins
+(setq mu4e-update-interval 600)
+
+;; something about ourselves
+(setq
+ user-mail-address "cpsweene@gmail.com"
+ user-full-name  "Cam Sweeney")
+ ;; message-signature
+ ;; (concat
+ ;;  "任文山 (Ren Wenshan)\n"
+ ;;  "Email: renws1990@gmail.com\n"
+ ;;  "Blog: wenshanren.org\n"
+ ;;  "Douban: www.douban.com/people/renws"
+ ;;  "\n"))
+
+;; sending mail -- replace USERNAME with your gmail username
+;; also, make sure the gnutls command line utils are installed
+;; package 'gnutls-bin' in Debian/Ubuntu
+
+
+;; alternatively, for emacs-24 you can use:
+(setq message-send-mail-function 'smtpmail-send-it
+    smtpmail-stream-type 'starttls
+    smtpmail-default-smtp-server "smtp.gmail.com"
+    smtpmail-smtp-server "smtp.gmail.com"
+    smtpmail-smtp-service 587)
+
+
+
+;;  ;; Include a bookmark to open all of my inboxes
+;; (add-to-list 'mu4e-bookmarks
+;;        (make-mu4e-bookmark
+;;         :name "All Inboxes"
+;;         :query "maildir:/Exchange/INBOX OR maildir:/Gmail/INBOX"
+;;         :key ?i))
+
+;; This allows me to use 'helm' to select mailboxes
+(setq mu4e-completing-read-function 'completing-read)
+;; Why would I want to leave my message open after I've sent it?
+(setq message-kill-buffer-on-exit t)
+;; Don't ask for a 'context' upon opening mu4e
+(setq mu4e-context-policy 'pick-first)
+;; Don't ask to quit... why is this the default?
+(setq mu4e-confirm-quit nil)
+
+(use-package org-mu4e)
+;; ;; configure orgmode support in mu4e
+;; (use-package org-mu4e)
+;; ;; when mail is sent, automatically convert org body to HTML
+;; (setq org-mu4e-convert-to-html t)
+
+
+
+;;----------------------------------------------------------
+;; ---- END Email client ----
+;;----------------------------------------------------------
+
+
 ;; KEYBINDINGS
 
 
@@ -577,21 +717,32 @@
 
 
 (use-package helm
+  :config (
+    (helm-autoresize-mode 1)
+    (helm-mode 1))
   :bind (("M-x" . helm-M-x)
          ("C-x C-f" . helm-find-files)
          ([f10] . helm-buffers-list)
-         ([S-f10] . helm-recentf)))
+         ([S-f10] . helm-recentf))
+         ("M-x" . #'helm-M-x)
+         ("C-x r b" . #'helm-filtered-bookmarks)
+         ("C-x b" . #'helm-mini)
+        ("s-i" . #'helm-imenu)
+        ("M-s o" . #'helm-occur)
+        ("C-x C-f" . #'helm-find-files))
 
-(global-set-key (kbd "M-x") #'helm-M-x)
-(global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
-(global-set-key (kbd "C-x C-f") #'helm-find-files)
-(global-set-key (kbd "C-x b") #'helm-mini)
-(global-set-key (kbd "s-i") #'helm-imenu)
-(global-set-key (kbd "M-s o") #'helm-occur)
 (helm-autoresize-mode 1)
-
-
-
 (helm-mode 1)
+
+
+
+;; Firefox bookmarks
+(add-to-list 'load-path "~/.emacs.d/scripts/ffbookmarks")
+(add-to-list 'load-path "~/.emacs.d/packages/firefox-protocol.el")
+(use-package firefox-protocol)
+(use-package helm-firefox)
+
+
+
 
 ;; init.el ends here
