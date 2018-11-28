@@ -1,3 +1,4 @@
+
 ;; init.el --- Emacs configuration
 
 ;; SETUP
@@ -574,7 +575,6 @@
 
 
 
-
 ;;----------------------------------------------------------
 ;; ---- BEGIN Email client ----
 ;;----------------------------------------------------------
@@ -616,18 +616,15 @@
 ;; email in my browser. `aV` in view to activate
 (add-to-list 'mu4e-view-actions '("View in browser" . mu4e-action-view-in-browser) t)
 
-;; Possible options:
-;;   - html2text -utf8 -width 72
-;;   - textutil -stdin -format html -convert txt -stdout
-;;   - html2markdown | grep -v '&nbsp_place_holder;' (Requires html2text pypi)
-;;   - w3m -dump -cols 80 -T text/html
-;;   - view in browser (provided below)
-;; (setq mu4e-html2text-command "textutil -stdin -format html -convert txt -stdout")
-;; (setq mu4e-html2text-command "w3m -dump -T text/html")
-;; (setq mu4e-html2text-command "pandoc -f html -t org")
-(setq  mu4e-view-prefer-html t)
-(setq mu4e-html2text-command
-  "textutil -stdin -format html -convert txt -stdout")
+;; make messages easier to read
+(setq shr-color-visible-luminance-min 80)
+
+;; use the default mu4e-shr2text
+(add-hook 'mu4e-view-mode-hook
+  (lambda()
+    ;; try to emulate some of the eww key-bindings
+    (local-set-key (kbd "<tab>") 'shr-next-link)
+    (local-set-key (kbd "<backtab>") 'shr-previous-link)))
 
 ;; spell check
 (add-hook 'mu4e-compose-mode-hook
@@ -658,12 +655,8 @@
  ;;  "Douban: www.douban.com/people/renws"
  ;;  "\n"))
 
-;; sending mail -- replace USERNAME with your gmail username
-;; also, make sure the gnutls command line utils are installed
-;; package 'gnutls-bin' in Debian/Ubuntu
 
-
-;; alternatively, for emacs-24 you can use:
+;;for emacs-24 you can use:
 (setq message-send-mail-function 'smtpmail-send-it
     smtpmail-stream-type 'starttls
     smtpmail-default-smtp-server "smtp.gmail.com"
@@ -688,12 +681,11 @@
 ;; Don't ask to quit... why is this the default?
 (setq mu4e-confirm-quit nil)
 
-(use-package org-mu4e)
-;; ;; configure orgmode support in mu4e
-;; (use-package org-mu4e)
-;; ;; when mail is sent, automatically convert org body to HTML
-;; (setq org-mu4e-convert-to-html t)
 
+;;store org-mode links to messages
+(require 'org-mu4e)
+;;store link to message if in header view, not to header query
+(setq org-mu4e-link-query-in-headers-mode nil)
 
 
 ;;----------------------------------------------------------
@@ -717,9 +709,6 @@
 
 
 (use-package helm
-  :config (
-    (helm-autoresize-mode 1)
-    (helm-mode 1))
   :bind (("M-x" . helm-M-x)
          ("C-x C-f" . helm-find-files)
          ([f10] . helm-buffers-list)
@@ -735,14 +724,15 @@
 (helm-mode 1)
 
 
+;; MUSIC
+;; ----------------
 
-;; Firefox bookmarks
-(add-to-list 'load-path "~/.emacs.d/scripts/ffbookmarks")
-(add-to-list 'load-path "~/.emacs.d/packages/firefox-protocol.el")
-(use-package firefox-protocol)
-(use-package helm-firefox)
+;; using mpdel instead of emms, because it works great with mopidy
+(use-package mpdel
+  :diminish)
+(mpdel-mode)
+(setq libmpdel-music-directory "~/Documents/music/")
 
 
 
-
-;; init.el ends here
+;; Init.el ends here
