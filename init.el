@@ -8,12 +8,18 @@
 (server-start)
 (require 'package)
 
-;; (package-initialize)
+(package-initialize)
 
 
 ;; package sources
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 ;; (setq package-enable-at-startup nil)
+
+(quelpa
+ '(quelpa-use-package
+   :fetcher git
+   :url "https://framagit.org/steckerhalter/quelpa-use-package.git"))
+(require 'quelpa-use-package)
 
 
 ;; Bootstrap use-package
@@ -88,7 +94,7 @@
 (global-set-key (kbd "M-o")  'mode-line-other-buffer)
 
 ;; breathing room from margin
-(setq-default left-margin-width 15 right-margin-width 8) ; Define new widths.
+(setq-default left-margin-width 0 right-margin-width 8) ; Define new widths.
 (set-window-buffer nil (current-buffer)) ; Use them now.
 
 ;; wrap lines
@@ -485,11 +491,11 @@
 (setq org-default-notes-file "~/org/notes.org")
 
 (setq org-agenda-files
-      '("~/org/notes.org" "~/org/refile.org"))
+      '("~/org/notes.org" "~/org/refile.org" "~/org/cal.org"))
 
 (setq org-refile-targets
       '((nil :maxlevel . 1)
-        (org-agenda-files :maxlevel . 2)))
+        (org-agenda-files :maxlevel . 3)))
 
 
 ;; I use C-c c to start capture mode
@@ -521,8 +527,6 @@
 (setq org-capture-templates
       (quote (("t" "todo" entry (file "~/org/notes.org")
                "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
-              ;; ("b" "bookmark" item (file+headline "~/org/notes.org" "Bookmarks")
-              ;;   "* BOOKMARK %:link%:description\n%?%^G\n%U\n")
               ("b" "Bookmark" entry (file+headline "~/org/notes.org" "Bookmarks")
 	           "* %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n\n" :empty-lines 1)
               ("r" "respond" entry (file "~/org/notes.org")
@@ -535,6 +539,8 @@
                "* TODO Review %c\n%U\n" :immediate-finish t)
               ("m" "Meeting" entry (file "~/org/notes.org")
                "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
+			   ("e" "Event" entry (file "~/org/cal.org")
+               "* EVENT %? :EVENT:\n%^t\n%^G\n%a")
               ("p" "Phone call" entry (file "~/org/notes.org")
                "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
               ("h" "Habit" entry (file "~/org/notes.org")
@@ -720,8 +726,9 @@
         ("M-s o" . #'helm-occur)
         ("C-x C-f" . #'helm-find-files))
 
-(helm-autoresize-mode 1)
 (helm-mode 1)
+(helm-autoresize-mode 1)
+
 
 
 ;; MUSIC
