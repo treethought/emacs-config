@@ -223,7 +223,9 @@
   (setq avy-background t)
   (setq avy-style 'at-full)
 
-  :bind ("C-:" . avy-goto-char))
+  :bind
+    ("C-:" . avy-goto-char)
+    ("M-SPC" . avy-goto-char-timer))
 
 
 
@@ -297,6 +299,7 @@
 (when (eq system-type 'darwin)
   (set-face-attribute 'default nil :family "Source Code Pro for Powerline")
     (set-face-attribute 'default nil :family "Space Mono for Powerline")
+    (set-face-attribute 'default nil :family "Overpass Mono")
     ;; (set-face-attribute 'default nil :family "Meslo LG M DZ for Powerline")
     ;;     (set-face-attribute 'default nil :family "Fira Mono for Powerline")
     ;;     (set-face-attribute 'default nil :family "Inconsolata-dz for Powerline")
@@ -482,16 +485,53 @@
   (setq pipenv-projectile-after-switch-function, #'pipenv-projectile-after-switch-default))
 
 
+;; Javascript
+;; ----------
+
+(setq js-indent-level 2)
+
+(use-package js2-mode)
+
+(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+(add-hook 'js2-mode-hook (lambda ()
+                           (tern-mode)
+                           (company-mode)
+						   (set-variable 'indent-tabs-mode nil)))
+
+(use-package vue-mode)
+(add-to-list 'auto-mode-alist '("\\.vue\\'" . vue-mode))
+(add-hook 'mmm-mode-hook
+          (lambda ()
+			(set-variable 'indent-tabs-mode nil)
+            (set-face-background 'mmm-default-submode-face nil)))
+
+(use-package emmet-mode)
+(add-hook 'sgml-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
+(add-hook 'css-mode-hook  'emmet-mode) ;; enable Emmet's css abbreviation.
+(add-hook 'emmet-mode-hook (lambda () (setq emmet-indent-after-insert nil)))
+(add-hook 'emmet-mode-hook (lambda () (setq emmet-indentation 2))) ;; indent 2 spaces
+(setq emmet-move-cursor-between-quotes t) ;; default nil
+
+(setq js2-strict-missing-semi-warning nil)
+(setq js2-missing-semi-one-line-override t)
+
+;; GO
+;; ----------
+(use-package go)
+(autoload 'go-mode "go-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.go\\'" . go-mode))
+
+
 ;; ORG MODE
 ;; --------------------
 
 
 
-(setq org-directory "~/org")
-(setq org-default-notes-file "~/org/notes.org")
+(setq org-directory "~/Dropbox/org")
+(setq org-default-notes-file "~/Dropbox/org/notes.org")
 
 (setq org-agenda-files
-      '("~/org/notes.org" "~/org/refile.org" "~/org/cal.org"))
+      '("~/Dropbox/org/notes.org" "~/Dropbox/org/refile.org" "~/Dropbox/org/cal.org"))
 
 (setq org-refile-targets
       '((nil :maxlevel . 1)
